@@ -1,0 +1,9 @@
+- name: network restart
+  service: 
+    name: network-manager
+    state: restarted
+
+- name: dhcp restart
+  service: 
+    name: isc-dhcp-server
+    state: restarted

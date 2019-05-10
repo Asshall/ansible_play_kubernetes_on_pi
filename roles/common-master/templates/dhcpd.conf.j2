@@ -1,0 +1,40 @@
+{#  Required vars #}
+{# domain_name  -> group_vars/pi.yaml #}
+{# private_net -> group_vars/pi.yaml #}
+{# private_mask -> group_vars/pi.yaml #}
+{# host_number -> group_vars/pi.yaml #}
+
+{# master_private -> pi.yaml #}
+{# hosts -> roles/common/task/main.yaml (template task) #}
+{# workers_prefix -> roles/common/defaults/main.yaml #}
+
+{% set subed_private_net = private_net[:-1] %}
+server-name {{ 'dhcp.' ~ domain_name }};
+
+ddns-update-style none;
+
+{# ntp.ubuntu.com #}
+option ntp-servers 91.189.89.199;
+
+subnet {{ private_net }} netmask {{ private_mask }} {
+	authoritative;
+	
+	default-lease-time 600;
+	max-lease-time 7200;
+	
+	range {{ subed_private_net ~ 2 }} {{ subed_private_net ~ (host_number + 2) }};
+	
+	option domain-name {{ domain_name }};
+	option domain-name-servers {{ master_private }};
+	option routers {{ master_private }};
+
+  {% for host in hostvars %}
+    {% if hostvars[host].group_names == ['workers'] %}
+    host {{ host }}{
+      hostvars[host].ansible_host
+      hardware ethernet {{ hostvars[host].mac }};
+      fixed-address {{ hostvars[host].ansible_host }};
+    }
+    {% endif %}
+  {% endfor %}
+}

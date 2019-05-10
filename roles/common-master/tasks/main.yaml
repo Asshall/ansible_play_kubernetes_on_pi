@@ -1,0 +1,82 @@
+---
+
+
+# - debug:
+#     msg: "{{ ansible_ssh_private_key_file }}"
+
+- name: Add workers to inventory
+  add_host:
+    hostname: "{{ workers_suffix ~ '-' ~ item.num }}"
+    mac: "{{ item.mac }}"
+    groups: workers
+  with_items: "{{ workers }}"
+
+- name: Install dhcp server, dns, persitent iptables and kernel module utils
+  apt:
+    force_apt_get: yes
+    name: [
+      "isc-dhcp-server", "bind9", iptables-persistent, kmod, ifupdown2
+    ]
+    state: present
+
+- name: Configure network manager to leave us alone / keyboard in french ;)
+  lineinfile: 
+    dest: /etc/{{ item.dest }}
+    regexp: "{{ item.reg }}"
+    line: "{{ item.line }}"
+    backrefs: yes
+  with_items:
+    - { dest: NetworkManager/NetworkManager.conf ,reg: "^(unmanaged-devices).+?ethernet" ,line: '\1=*' }
+   # - { dest: default/keyboard ,reg: XKBLAYOUT ,line: XKBLAYOUT="fr" }
+
+- name: Generate interfaces file
+  template:
+    src: interfaces.j2 
+    dest: /etc/network/interfaces
+  notify: network restart
+
+- name: Specify interface for isc and point to conf file
+  template:
+    src: isc-dhcp-server.j2 
+    dest: /etc/default/isc-dhcp-server
+
+- name: Generate dhcp.conf
+  template:
+    src: dhcpd.conf.j2 
+    dest: /etc/dhcp/dhcpd.conf
+  notify: 
+  - dhcp restart 
+
+- name: Add iptables modules
+  modprobe:
+    name: iptable_nat
+    state: present
+  with_items: "iptable_nat, iptables_filter, nf_conntrack_ipv4"
+
+- name: Enable IP forwarding
+  shell: echo "1" > /proc/sys/net/ipv4/ip_forward
+  become: yes
+
+- name: Configure POSTROUTING
+  iptables:
+    table: nat
+    chain: POSTROUTING
+    out_interface: eth0
+    jump: MASQUERADE
+
+- name: Configure statefull FORWARD from outside
+  iptables:
+    chain: FORWARD
+    in_interface: eth0
+    out_interface: "{{ private_nic }}"
+    ctstate: ESTABLISHED,RELATED
+    jump: ACCEPT
+
+- name: Configure FORWARD
+  iptables:
+    chain: FORWARD
+    in_interface: "{{ private_nic }}"
+    jump: ACCEPT
+
+...
+

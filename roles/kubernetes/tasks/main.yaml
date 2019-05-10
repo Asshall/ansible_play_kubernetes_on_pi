@@ -1,0 +1,31 @@
+---
+
+- name: Install docker.io, kubelet, kubectl
+  apt:
+    force_apt_get: yes
+    name: [
+      "docker.io", "kubelet", "kubectl"
+    ]
+    state: present
+    update_cache: yes
+
+# kubelet conf
+
+- name: Reload systemd unit if args were changed.
+  systemd:
+    state: restarted
+    daemon_reload: true
+    name: kubelet
+  when: kubelet_config_file is changed
+
+- name: Ensure kubelet is started and enabled at boot.
+  service:
+    name: kubelet
+    state: started
+    enabled: true
+
+# Master set up 
+
+# Worker set up 
+
+...

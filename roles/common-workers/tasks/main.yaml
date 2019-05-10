@@ -1,0 +1,2 @@
+- name: Add master as gateway for default on workers
+  shell: route add default gw {{ master_private }}

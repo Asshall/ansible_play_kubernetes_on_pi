@@ -1,0 +1,2 @@
+- name: dhcp discovery (workers)
+  shell: dhclient 

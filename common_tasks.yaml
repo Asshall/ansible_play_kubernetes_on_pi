@@ -1,0 +1,6 @@
+- name: Update and upgrade packages
+  apt:
+    name: "*"
+    state: latest
+    update_cache: yes
+    force_apt_get: yes

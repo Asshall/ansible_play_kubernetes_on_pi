@@ -1,0 +1,24 @@
+---
+
+- hosts: master
+  user: rock
+  become: yes
+  gather_facts: no
+  tasks:
+    - import_tasks: common_tasks.yaml
+  roles:
+    - common-master
+  #  - kubernetes
+
+- hosts: workers
+  become: yes
+  gather_facts: no
+  tasks:
+  - import_tasks: common_tasks.yaml
+  roles:
+    - common-workers
+
+  # roles: 
+  # - common-sub
+
+...
