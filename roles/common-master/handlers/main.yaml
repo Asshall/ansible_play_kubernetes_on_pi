@@ -1,9 +1,14 @@
-- name: network restart
+- name: network 
   service: 
-    name: network-manager
+    name: NetworkManager
     state: restarted
 
-- name: dhcp restart
+- name: dhcp 
   service: 
     name: isc-dhcp-server
+    state: restarted
+
+- name: dns 
+  service: 
+    name: bind9
     state: restarted

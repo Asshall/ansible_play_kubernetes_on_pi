@@ -15,6 +15,7 @@ public_mask: 255.255.128.0
 
 # Only present on public address since on private adresses are given by incrementing last octet
 master_public_suffix: '89.185'
+master_public: "{{ public_net.split('.')[0:(master_public_suffix.split('.') | length)] | join('.') ~ '.' ~ master_public_suffix }}"
 
 # Workers
 
@@ -24,3 +25,5 @@ workers_user: pi
 workers:
 - num: 1
   mac: "b8:27:eb:6b:9b:bd"
+
+hardware_architechture: arm64

@@ -4,20 +4,7 @@
 # - debug:
 #     msg: "{{ ansible_ssh_private_key_file }}"
 
-- name: Add workers to inventory
-  add_host:
-    hostname: "{{ workers_suffix ~ '-' ~ item.num }}"
-    mac: "{{ item.mac }}"
-    groups: workers
-  with_items: "{{ workers }}"
-
-- name: Install dhcp server, dns, persitent iptables and kernel module utils
-  apt:
-    force_apt_get: yes
-    name: [
-      "isc-dhcp-server", "bind9", iptables-persistent, kmod, ifupdown2
-    ]
-    state: present
+- include_tasks: common_tasks.yaml
 
 - name: Configure network manager to leave us alone / keyboard in french ;)
   lineinfile: 
@@ -27,25 +14,47 @@
     backrefs: yes
   with_items:
     - { dest: NetworkManager/NetworkManager.conf ,reg: "^(unmanaged-devices).+?ethernet" ,line: '\1=*' }
-   # - { dest: default/keyboard ,reg: XKBLAYOUT ,line: XKBLAYOUT="fr" }
+   # - { dest: bind/named.conf.options ,reg: XKBLAYOUT ,line: XKBLAYOUT="fr" }
+
+- name: Install needed packages
+  apt:
+    force_apt_get: yes
+    name: [
+      "isc-dhcp-server", "bind9", iptables-persistent, kmod, ifupdown2
+    ]
+    state: present
+  when: test != "true"
+
+- name: Configure bind as a forwarding dns
+  lineinfile: 
+    dest: /etc/bind/named.conf.options
+    insertafter: options {
+    line: forwarders { {{ forwarded_dns }}; };
+  notify: dns 
 
 - name: Generate interfaces file
   template:
     src: interfaces.j2 
     dest: /etc/network/interfaces
-  notify: network restart
+  notify: network 
 
-- name: Specify interface for isc and point to conf file
-  template:
-    src: isc-dhcp-server.j2 
-    dest: /etc/default/isc-dhcp-server
+- name: Add workers to inventory
+  add_host:
+    hostname: "{{ workers_suffix ~ '-' ~ item.num }}"
+    mac: "{{ item.mac }}"
+    groups: workers
+  with_items: "{{ workers }}"
 
 - name: Generate dhcp.conf
   template:
     src: dhcpd.conf.j2 
     dest: /etc/dhcp/dhcpd.conf
-  notify: 
-  - dhcp restart 
+  notify: dhcp  
+  
+- name: Specify interface for isc and point to conf file
+  template:
+    src: isc-dhcp-server.j2 
+    dest: /etc/default/isc-dhcp-server
 
 - name: Add iptables modules
   modprobe:
@@ -61,13 +70,13 @@
   iptables:
     table: nat
     chain: POSTROUTING
-    out_interface: eth0
+    out_interface: "{{ public_nic }}"
     jump: MASQUERADE
 
 - name: Configure statefull FORWARD from outside
   iptables:
     chain: FORWARD
-    in_interface: eth0
+    in_interface: "{{ public_nic }}"
     out_interface: "{{ private_nic }}"
     ctstate: ESTABLISHED,RELATED
     jump: ACCEPT
@@ -77,6 +86,11 @@
     chain: FORWARD
     in_interface: "{{ private_nic }}"
     jump: ACCEPT
+
+- name: Do dhclient on workers...
+  shell: sleep 15
+# - name: force handlers to execute
+#   meta: flush_handlers
 
 ...
 

@@ -1,0 +1,23 @@
+[Unit]
+Description=etcd
+Documentation=https://coreos.com/etcd/docs/latest/
+After=network.target
+
+{% set cluster_addr = 'http://' ~ master_private ~ ':' ~ (etcd_port + 1) %}
+[Service]
+ExecStart=/usr/bin/etcd \
+  --name master \
+  --listen-client-urls {{ etcd_addr }} \
+  --advertise-client-urls {{ etcd_addr }} \
+  --data-dir=/var/lib/etcd \
+  --initial-advertise-peer-urls {{ cluster_addr }} \
+  --listen-peer-urls {{ cluster_addr }} \
+  --initial-cluster-token {{ 'etcd-cluster-' ~ (range(1,100) | random) }} \
+  --initial-cluster master={{ cluster_addr }} \
+  --initial-cluster-state new
+Restart=always
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target
+

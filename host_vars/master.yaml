@@ -1,4 +1,3 @@
-master_public: "{{ public_net.split('.')[0:(master_public_suffix.split('.') | length)] | join('.') ~ '.' ~ master_public_suffix }}"
-
+ansible_user: rock
 ansible_host: "{{ master_public }}"
 ansible_become_pass: "rock" 

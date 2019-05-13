@@ -1,0 +1,7 @@
+etcd_port: 2379
+etcd_addr: "{{ 'http://' ~ master_private ~ ':' ~ etcd_port }}"
+master_port: 6443
+master_addr: "{{ 'http://' ~ master_private ~ ':' ~ master_port }}"
+cluster_name: test
+
+services: ["etcd.service", "kube-apiserver.service", "kube-scheduler.service"]

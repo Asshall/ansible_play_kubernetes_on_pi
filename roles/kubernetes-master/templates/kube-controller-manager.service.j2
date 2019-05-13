@@ -1,0 +1,20 @@
+[Unit]
+Description=Kubernetes Controller Manager
+Documentation=https://github.com/kubernetes/kubernetes
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/kube-controller-manager \
+  --kubeconfig=/etc/kubernetes/controller-manager.kubeconfig \
+  --address={{ master_private }} \
+  --leader-elect=true \
+  --controllers=*,tokencleaner \
+  --cluster-cidr={{ master_private ~ '/24'}} \
+  --cluster-name={{ cluster_name }} \
+  --service-cluster-ip-range={{ master_private ~ '/16'}} \
+  --v=2
+Restart=always
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target

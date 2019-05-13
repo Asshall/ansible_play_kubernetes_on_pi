@@ -1,2 +1,4 @@
 private_nic: enx0050b62623b8
 public_nic: eth0
+
+forwarded_dns: 141.64.3.55

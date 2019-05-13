@@ -1,0 +1,23 @@
+[Unit]
+Description=Kubernetes API Server
+Documentation=https://github.com/kubernetes/kubernetes
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/kube-apiserver \
+  --apiserver-count=1 \
+  --allow-privileged=true \
+  --admission-control=NamespaceLifecycle,LimitRanger,ServiceAccount,PersistentVolumeLabel,DefaultStorageClass,ResourceQuota,DefaultTolerationSeconds \
+  --advertise-address={{ master_addr }} \
+  --insecure-port={{ master_port }} \
+  --insecure-bind-address={{ master_private }} \
+  --etcd-servers={{ etcd_addr }}\
+  --service-cluster-ip-range={{ private_net ~ '/16' }} \
+  --service-node-port-range=30000-32767 \
+  --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname \
+  --v=2
+Restart=always
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,25 @@
+---
+
+- hosts: master
+  become: yes
+  gather_facts: no
+  roles: 
+  #- common-master 
+  - kubernetes-master
+
+- hosts: workers
+  become: yes
+  gather_facts: no
+  roles: 
+  - common-workers  
+
+
+
+  #  - kubernetes
+
+
+
+  # roles: 
+  # - common-sub
+
+...
