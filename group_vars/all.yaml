@@ -1,10 +1,11 @@
-ssh_keys: "{{ inventory_dir }}/ssh_keys"
+ssh_keys: "{{ playbook_dir }}/ssh_keys"
 ansible_ssh_private_key_file: "{{ ssh_keys}}/key_id_rsa"
 
 # Private conf
 domain_name: pi.lan
 private_net: 192.168.0.0
 private_mask: 255.255.255.0
+private_cidr: '/24'
 master_private: "{{ private_net[:-1] ~ 1 }}"
 host_number: 10
 

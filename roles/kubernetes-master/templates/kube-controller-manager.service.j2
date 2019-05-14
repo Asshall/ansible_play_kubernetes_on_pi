@@ -5,14 +5,18 @@ After=network.target
 
 [Service]
 ExecStart=/usr/bin/kube-controller-manager \
-  --kubeconfig=/etc/kubernetes/controller-manager.kubeconfig \
-  --address={{ master_private }} \
+  --kubeconfig={{ remote_src }}controller-manager.kubeconfig \
+  --bind-address={{ master_private }} \
   --leader-elect=true \
-  --controllers=*,tokencleaner \
-  --cluster-cidr={{ master_private ~ '/24'}} \
+  --controllers=* \
   --cluster-name={{ cluster_name }} \
-  --service-cluster-ip-range={{ master_private ~ '/16'}} \
-  --v=2
+  --cluster-cidr={{ private_net ~ private_cidr}} \
+  --service-cluster-ip-range={{ private_net ~ private_cidr }} \
+  --v=2 \
+  --cluster-signing-cert-file={{ remote_cert ~ "ca.crt" }} \
+  --cluster-signing-key-file={{ remote_cert ~ "ca.key" }} \
+  --root-ca-file={{ remote_cert ~ "ca.crt" }}
+  
 Restart=always
 RestartSec=10s
 

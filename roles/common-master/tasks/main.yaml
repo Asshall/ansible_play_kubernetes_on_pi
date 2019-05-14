@@ -20,10 +20,11 @@
   apt:
     force_apt_get: yes
     name: [
-      "isc-dhcp-server", "bind9", iptables-persistent, kmod, ifupdown2
+      isc-dhcp-server, bind9, kmod, ifupdown2
     ]
     state: present
-  when: test != "true"
+  when: test != "true" or test is not defined
+
 
 - name: Configure bind as a forwarding dns
   lineinfile: 

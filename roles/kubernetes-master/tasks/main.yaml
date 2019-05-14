@@ -2,54 +2,65 @@
 
 - name: get last kubernetes tag
   shell: curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt
+  args:
+    warn:  false
   register: kube_tag
+  when: test != "true" or test is not defined
+
 
 - name: get api-server, scheduler, controller-manager
   get_url:
     dest: /usr/bin
-    url: https://storage.googleapis.com/kubernetes-release/release/{{ kube_tag.stdout_lines[0] }}/bin/linux/{{ hardware_architechture }}/{{ item }}
+    url: https://storage.googleapis.com/kubernetes-release/release/{{ kube_tag.stdout }}/bin/linux/{{ hardware_architechture }}/{{ item }}
     mode: 0755
   with_items: 
   - kube-apiserver
   - kube-controller-manager
   - kube-scheduler
+  when: test != "true" or test is not defined
 
-- name: get etcd and etcdctl compressed file
-  get_url:
-    dest: /temp
-    url: https://github.com/coreos/etcd/releases/download/v3.3.13/etcd-v3.3.13-linux-{{ hardware_architechture }}.tar.gz
-
-- name: extract etcd files 
+- name: download and extract etcd files 
   unarchive: 
-    remote_src: yes
-    src: /temp
+    creates: /usr/bin/etcd
+    src: https://github.com/coreos/etcd/releases/download/v3.3.13/etcd-v3.3.13-linux-{{ hardware_architechture }}.tar.gz
     dest: /
     exclude: 
       - Documentation
       - README*
+  register: result
 
 - name: mv file from parent folder
   shell: mv /etcd*/* /usr/bin
+  when: result.skipped == "false"
+
+- name: Copy certificate to remote
+  copy: 
+    src: "{{ local_cert ~ '/' ~ item }}"
+    dest: "{{ remote_cert }}"
+  with_items:
+    - "ca.crt"
+    - "ca.key"
+    - "sa.crt"
+    - "sa.key"
+    - "main.crt"
+    - "main.key"
 
 - name: Generate config files
   template: 
     src: "{{ item }}"
-    dest: /etc/kubernetes/"{{ item[:-3] }}"
+    dest: "{{ remote_src ~ item[:-3] }}"
   with_items:
     - controller-manager.kubeconfig.j2
     - scheduler.kubeconfig.j2
-
+    - admin.kubeconfig.j2
+    
 - name: Generate services
   template: 
     src: "{{ item ~ '.j2' }}"
     dest: /etc/systemd/system/{{ item }}
   with_items: "{{ services }}"
-  
-- name: Enables and start services
-  service:
-    name: "{{ item }}"
-    enabled: yes
-  with_items: "{{ services }}"
+  notify: Enables and start services
+
 
 # - name: Install docker.io, kubelet, kubectl
 #   apt:

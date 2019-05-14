@@ -6,7 +6,7 @@ After=network.target
 [Service]
 ExecStart=/usr/bin/kube-scheduler \
   --leader-elect=true \
-  --kubeconfig=/etc/kubernetes/scheduler.kubeconfig \
+  --kubeconfig={{ remote_src }}scheduler.kubeconfig \
   --address={{ master_private }} \
   --v=2
 Restart=always

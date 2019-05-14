@@ -3,8 +3,9 @@ Description=etcd
 Documentation=https://coreos.com/etcd/docs/latest/
 After=network.target
 
-{% set cluster_addr = 'http://' ~ master_private ~ ':' ~ (etcd_port + 1) %}
+{% set cluster_addr = cluster_url ~ (etcd_port + 1) %}
 [Service]
+Environment="ETCD_UNSUPPORTED_ARCH=arm64"
 ExecStart=/usr/bin/etcd \
   --name master \
   --listen-client-urls {{ etcd_addr }} \
@@ -14,7 +15,16 @@ ExecStart=/usr/bin/etcd \
   --listen-peer-urls {{ cluster_addr }} \
   --initial-cluster-token {{ 'etcd-cluster-' ~ (range(1,100) | random) }} \
   --initial-cluster master={{ cluster_addr }} \
-  --initial-cluster-state new
+  --initial-cluster-state new \
+  --cert-file={{ remote_cert ~ "main.crt" }} \
+  --key-file={{ remote_cert ~ "main.key" }} \
+  --peer-cert-file={{ remote_cert ~ "main.crt" }} \
+  --peer-key-file={{ remote_cert ~ "main.key" }} \
+  --trusted-ca-file={{ remote_cert ~ "ca.crt" }} \
+  --peer-trusted-ca-file={{ remote_cert ~ "ca.key" }} \
+  --peer-client-cert-auth \
+  --client-cert-auth 
+  
 Restart=always
 RestartSec=10s
 

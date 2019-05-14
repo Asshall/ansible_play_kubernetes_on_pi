@@ -2,13 +2,16 @@
   service: 
     name: NetworkManager
     state: restarted
+    enabled: yes
 
 - name: dhcp 
   service: 
     name: isc-dhcp-server
     state: restarted
+    enabled: yes
 
 - name: dns 
   service: 
     name: bind9
     state: restarted
+    enabled: yes
