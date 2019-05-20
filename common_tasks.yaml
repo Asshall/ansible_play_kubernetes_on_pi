@@ -4,4 +4,4 @@
     state: latest
     update_cache: yes
     force_apt_get: yes
-  when: test != "true" or test is not defined
+  when: test != "true" or test is undefined

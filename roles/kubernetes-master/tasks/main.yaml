@@ -1,12 +1,10 @@
 ---
 
-- name: get last kubernetes tag
-  shell: curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt
-  args:
-    warn:  false
-  register: kube_tag
-  when: test != "true" or test is not defined
+- name: Include Kubernetes vars
+  include_vars :
+    file: kubernetes.yaml
 
+- include_tasks: kube_common_tasks.yaml
 
 - name: get api-server, scheduler, controller-manager
   get_url:
@@ -17,10 +15,11 @@
   - kube-apiserver
   - kube-controller-manager
   - kube-scheduler
-  when: test != "true" or test is not defined
+  when: test != "true" or test is undefined
 
 - name: download and extract etcd files 
   unarchive: 
+    remote_src: yes 
     creates: /usr/bin/etcd
     src: https://github.com/coreos/etcd/releases/download/v3.3.13/etcd-v3.3.13-linux-{{ hardware_architechture }}.tar.gz
     dest: /
@@ -31,58 +30,27 @@
 
 - name: mv file from parent folder
   shell: mv /etcd*/* /usr/bin
-  when: result.skipped == "false"
+  when: result.skipped is undefined
 
 - name: Copy certificate to remote
   copy: 
     src: "{{ local_cert ~ '/' ~ item }}"
     dest: "{{ remote_cert }}"
   with_items:
-    - "ca.crt"
-    - "ca.key"
-    - "sa.crt"
-    - "sa.key"
-    - "main.crt"
-    - "main.key"
-
-- name: Generate config files
-  template: 
-    src: "{{ item }}"
-    dest: "{{ remote_src ~ item[:-3] }}"
-  with_items:
-    - controller-manager.kubeconfig.j2
-    - scheduler.kubeconfig.j2
-    - admin.kubeconfig.j2
-    
+    - "ca.pem"
+    - "kubernetes-key.pem"
+    - "kubernetes.pem"
+  
+- name: Copy auth file to remote 
+  copy: 
+    src: "auth.json"
+    dest: "{{ remote_src }}"
+   
 - name: Generate services
   template: 
     src: "{{ item ~ '.j2' }}"
     dest: /etc/systemd/system/{{ item }}
   with_items: "{{ services }}"
   notify: Enables and start services
-
-
-# - name: Install docker.io, kubelet, kubectl
-#   apt:
-#     force_apt_get: yes
-#     name: [
-#       "docker.io", "kubelet", "kubectl"
-#     ]
-#     state: present
-#     update_cache: yes
-
-# - name: Reload systemd unit if args were changed.
-#   systemd:
-#     state: restarted
-#     daemon_reload: true
-#     name: kubelet
-#   when: kubelet_config_file is changed
-
-# - name: Ensure kubelet is started and enabled at boot.
-#   service:
-#     name: kubelet
-#     state: started
-#     enabled: true
-
 
 ...

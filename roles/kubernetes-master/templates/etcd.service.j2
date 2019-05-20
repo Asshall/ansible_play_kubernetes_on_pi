@@ -3,30 +3,28 @@ Description=etcd
 Documentation=https://coreos.com/etcd/docs/latest/
 After=network.target
 
-{% set cluster_addr = cluster_url ~ (etcd_port + 1) %}
+{% set peers_urls = etcd_addr[:-(etcd_client_port | length)] ~ etcd_peer_port %}
 [Service]
 Environment="ETCD_UNSUPPORTED_ARCH=arm64"
-ExecStart=/usr/bin/etcd \
-  --name master \
+Type=notify
+ExecStart=/usr/bin/etcd --name master \
+  --cert-file={{ remote_cert ~ "kubernetes.pem" }} \
+  --key-file={{ remote_cert ~ "kubernetes-key.pem" }} \
+  --peer-cert-file={{ remote_cert ~ "kubernetes.pem" }} \
+  --peer-key-file={{ remote_cert ~ "kubernetes-key.pem" }} \
+  --trusted-ca-file={{ remote_cert ~ "ca.pem" }} \
+  --peer-trusted-ca-file={{ remote_cert ~ "ca.pem" }} \
   --listen-client-urls {{ etcd_addr }} \
   --advertise-client-urls {{ etcd_addr }} \
-  --data-dir=/var/lib/etcd \
-  --initial-advertise-peer-urls {{ cluster_addr }} \
-  --listen-peer-urls {{ cluster_addr }} \
-  --initial-cluster-token {{ 'etcd-cluster-' ~ (range(1,100) | random) }} \
-  --initial-cluster master={{ cluster_addr }} \
+  --initial-advertise-peer-urls {{ peers_urls }} \
+  --listen-peer-urls {{ peers_urls }} \
+  --initial-cluster-token {{ "etcd-cluster-" ~ (range(1,100) | random) }} \
+  --initial-cluster master={{ peers_urls }} \
   --initial-cluster-state new \
-  --cert-file={{ remote_cert ~ "main.crt" }} \
-  --key-file={{ remote_cert ~ "main.key" }} \
-  --peer-cert-file={{ remote_cert ~ "main.crt" }} \
-  --peer-key-file={{ remote_cert ~ "main.key" }} \
-  --trusted-ca-file={{ remote_cert ~ "ca.crt" }} \
-  --peer-trusted-ca-file={{ remote_cert ~ "ca.key" }} \
-  --peer-client-cert-auth \
-  --client-cert-auth 
-  
+  --data-dir=/var/lib/etcd 
+
 Restart=always
-RestartSec=10s
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target

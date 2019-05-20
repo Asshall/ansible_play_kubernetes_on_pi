@@ -1,13 +1,5 @@
-etcd_port: 2379
-etcd_addr: "{{ 'https://' ~ master_private ~ ':' ~ etcd_port }}"
-
-master_port: 6443
-master_addr: "{{ 'https://' ~ master_private ~ ':' ~ master_port }}"
-cluster_name: test
+etcd_client_port: "2379"
+etcd_peer_port: "2380"
+etcd_addr: "{{ 'https://' ~ master_private ~ ':' ~ etcd_client_port }}"
 
 services: ["etcd.service", "kube-apiserver.service", "kube-scheduler.service", "kube-controller-manager.service"]
-
-local_cert: "{{ playbook_dir ~ 'pki' }}"
-
-remote_src: /etc/kubernetes/
-remote_cert: "{{ remote_src ~ 'pki' }}"

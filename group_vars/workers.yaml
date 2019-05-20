@@ -1,1 +1,4 @@
 ansible_host: "{{ private_net[:-1] ~ (inventory_hostname[-1:] | int + 1) }}"
+ansible_ssh_common_args: "-o 'ProxyCommand ssh rock@master -W %h:%p'"
+ansible_user: pi
+ansible_become_pass: raspberry 

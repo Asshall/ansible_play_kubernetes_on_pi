@@ -1,0 +1,25 @@
+[Unit]
+Description=Kubernetes Kubelet
+Documentation=https://github.com/GoogleCloudPlatform/kubernetes
+After=docker.service
+Requires=docker.service
+
+[Service]
+ExecStart=/usr/bin/kubelet \
+  --allow-privileged=true \
+  --api-servers={{ api_addr }} \
+  --cloud-provider= \
+  --cluster-dns={{ master_private }} \
+  --cluster-domain=cluster.local \
+  --container-runtime=docker \
+  --network-plugin=kubenet \
+  --kubeconfig={{ remote_src }}kubeconfig \
+  --serialize-image-pulls=false \
+  --cert-dir={{ remote_cert }} \
+  --v=7
+  
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

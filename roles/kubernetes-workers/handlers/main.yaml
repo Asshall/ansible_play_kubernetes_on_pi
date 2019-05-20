@@ -4,4 +4,4 @@
     enabled: yes
     state: started 
   with_items: "{{ services }}"
-  when: test != "true" or test is undefined
+  when: test != "true" or test is undefined 

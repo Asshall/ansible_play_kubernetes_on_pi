@@ -4,21 +4,19 @@ Documentation=https://github.com/kubernetes/kubernetes
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/kube-controller-manager \
-  --kubeconfig={{ remote_src }}controller-manager.kubeconfig \
-  --bind-address={{ master_private }} \
-  --leader-elect=true \
-  --controllers=* \
-  --cluster-name={{ cluster_name }} \
+ExecStart=/usr/bin/kube-controller-manager --cluster-name={{ cluster_name }} \
+  --master={{ api_addr }} \
+  --bind-address={{ master_private }} \ 
+  --allocate-node-cidrs=true \
   --cluster-cidr={{ private_net ~ private_cidr}} \
   --service-cluster-ip-range={{ private_net ~ private_cidr }} \
-  --v=2 \
-  --cluster-signing-cert-file={{ remote_cert ~ "ca.crt" }} \
-  --cluster-signing-key-file={{ remote_cert ~ "ca.key" }} \
-  --root-ca-file={{ remote_cert ~ "ca.crt" }}
-  
+  --leader-elect=true \
+  {# --service-account-private-key-file={{ remote_cert ~ "kubernetes-key.pem" }} \ #}
+  {# --cert-dir={{ remote_cert }} \ #}
+  --root-ca-file={{ remote_cert ~ "ca.pem" }} 
+
 Restart=always
-RestartSec=10s
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target

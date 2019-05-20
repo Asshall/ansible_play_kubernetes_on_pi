@@ -5,5 +5,5 @@ iface {{ public_nic }}  inet dhcp
 iface {{ private_nic }}  inet static
         address {{ master_private }}
         netmask {{ private_mask }}
-        pre-down iptables-save > /etc/iptables/rules.v4
-        post-up  iptables-restore < /etc/iptables/rules.v4
+        pre-down iptables-save > /etc/iprules.v4
+        post-up  iptables-restore < /etc/iprules.v4

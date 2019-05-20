@@ -1,0 +1,31 @@
+- name: Include Kubernetes vars
+  include_vars :
+    file: kubernetes.yaml
+
+- name: Install docker.io
+  apt:
+    force_apt_get: yes
+    name: [ "docker.io" ]
+    state: present
+    update_cache: yes
+  when: test != "true" or test is undefined
+
+- include_tasks: kube_common_tasks.yaml
+
+- name: get kubelet and kubeproxy
+  get_url:
+    dest: /usr/bin
+    url: https://storage.googleapis.com/kubernetes-release/release/{{ kube_tag.stdout }}/bin/linux/{{ hardware_architechture }}/{{ item[:-8] }}
+    mode: 0755
+    remote_src: yes
+  with_items: "{{ services }}"
+  when: test != "true" or test is undefined
+
+- name: Generate kubeconfig and services 
+  vars: 
+  template:
+    src: "{{ item ~ '.j2' }}"
+    dest: "{{ remote_src }}"
+  with_items: "{{ services + ['kubeconfig'] }}" 
+  notify: Enables and start services
+

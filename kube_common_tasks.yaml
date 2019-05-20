@@ -1,0 +1,6 @@
+- name: get last kubernetes tag
+  shell: curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt
+  args:
+    warn:  false
+  register: kube_tag
+  when: test != "true" or test is undefined

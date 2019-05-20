@@ -7,27 +7,23 @@ After=network.target
 ExecStart=/usr/bin/kube-apiserver \
   --apiserver-count=1 \
   --allow-privileged=true \
-  --skip-headers=true \
-  --enable-admission-plugins=NamespaceLifecycle,LimitRanger,ServiceAccount,PersistentVolumeLabel,DefaultStorageClass,ResourceQuota,DefaultTolerationSeconds \
+  {# --enable-admission-plugins=NamespaceLifecycle,LimitRanger,ServiceAccount,PersistentVolumeLabel,DefaultStorageClass,ResourceQuota,DefaultTolerationSeconds \ #}
   --bind-address={{ master_private }} \
-  --port={{ master_port }} \
-  --etcd-servers={{ etcd_addr }} \
   --service-cluster-ip-range={{ private_net ~ private_cidr }} \
   --service-node-port-range=30000-32767 \
-  --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname \
-  --log-dir=/var/lib/kube-apiserver.log \
-  --v=2 \ 
-  --client-ca-file={{ remote_cert ~ "ca.crt" }} \
-  --etcd-cafile={{ remote_cert ~ "ca.crt" }} \
-  --etcd-certfile={{ remote_cert ~ "main.crt" }} \
-  --etcd-keyfile={{ remote_cert ~ "main.key" }} \
-  --tls-cert-file={{ remote_cert ~ "main.crt" }}\
-  --tls-private-key-file={{ remote_cert ~ "main.key" }} \
-  --kubelet-client-certificate={{ remote_cert ~ "main.crt" }} \
-  --kubelet-client-key={{ remote_cert ~ "main.key" }} 
-  
+  --etcd-servers={{ etcd_addr }} \
+  --etcd-cafile={{ remote_cert ~ "ca.pem" }} \
+  {# --etcd-certfile={{ remote_cert ~ "kubernetes.pem" }} \
+  --etcd-keyfile={{ remote_cert ~ "kubernetes-key.pem" }} \ #}
+  --tls-cert-file={{ remote_cert ~ "kubernetes.pem" }} \
+  --tls-private-key-file={{ remote_cert ~ "kubernetes-key.pem" }} \
+  --kubelet-certificate-authority={{ remote_cert ~ "ca.pem" }} \
+  --authorization-mode=ABAC \
+  --authorization-policy-file={{ remote_src ~ "auth.json" }}
 Restart=always
 RestartSec=10s
 
 [Install]
 WantedBy=multi-user.target
+
+

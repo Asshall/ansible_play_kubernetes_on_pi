@@ -1,0 +1,9 @@
+local_cert: "{{ playbook_dir ~ '/pki/' }}"
+
+api_port: 6443
+api_addr: "{{ 'https://' ~ master_private ~ ':' ~ api_port }}"
+
+cluster_name: test
+remote_src: /etc/kubernetes/
+remote_cert: "{{ remote_src ~ 'pki/' }}"
+
