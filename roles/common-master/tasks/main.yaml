@@ -1,30 +1,27 @@
----
-
-
-# - debug:
-#     msg: "{{ ansible_ssh_private_key_file }}"
+- name: Add workers to inventory
+  add_host:
+    hostname: "{{ workers_prefix ~ (index + 1) }}"
+    mac: "{{ item }}"
+    groups: workers
+  with_items: "{{ workers }}"
+  loop_control:
+    index_var: index
 
 - include_tasks: common_tasks.yaml
 
-- name: Configure network manager to leave us alone / keyboard in french ;)
+- name: Configure network manager to leave us alone 
   lineinfile: 
-    dest: /etc/{{ item.dest }}
-    regexp: "{{ item.reg }}"
-    line: "{{ item.line }}"
+    dest: /etc/NetworkManager/NetworkManager.conf
+    regexp: "^(unmanaged-devices).+?ethernet"
+    line: '\1=*'
     backrefs: yes
-  with_items:
-    - { dest: NetworkManager/NetworkManager.conf ,reg: "^(unmanaged-devices).+?ethernet" ,line: '\1=*' }
-   # - { dest: bind/named.conf.options ,reg: XKBLAYOUT ,line: XKBLAYOUT="fr" }
 
 - name: Install needed packages
   apt:
     force_apt_get: yes
-    name: [
-      isc-dhcp-server, bind9, kmod, ifupdown2, curl
-    ]
+    name: [ isc-dhcp-server, bind9, kmod, ifupdown2, curl ]
     state: present
   when: test != "true" or test is undefined
-
 
 - name: Configure bind as a forwarding dns
   lineinfile: 
@@ -33,29 +30,15 @@
     line: forwarders { {{ forwarded_dns }}; };
   notify: dns 
 
-- name: Generate interfaces file
+- name: Generate template 
   template:
-    src: interfaces.j2 
-    dest: /etc/network/interfaces
-  notify: network 
-
-- name: Add workers to inventory
-  add_host:
-    hostname: "{{ workers_suffix ~ '-' ~ item.num }}"
-    mac: "{{ item.mac }}"
-    groups: workers
-  with_items: "{{ workers }}"
-
-- name: Generate dhcp.conf
-  template:
-    src: dhcpd.conf.j2 
-    dest: /etc/dhcp/dhcpd.conf
-  notify: dhcp  
-  
-- name: Specify interface for isc and point to conf file
-  template:
-    src: isc-dhcp-server.j2 
-    dest: /etc/default/isc-dhcp-server
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  notify: "{{ item.not | default('')}}" 
+  with_items: 
+  - { src: interfaces.j2, dest: /etc/network/interfaces, not: network }
+  - { src: isc-dhcp-server.j2 , dest: /etc/default/isc-dhcp-server, not: dhcp  }
+  - { src: dhcpd.conf.j2 , dest: /etc/dhcp/dhcpd.conf, not: dhcp }
 
 - name: Add iptables modules
   modprobe:
@@ -65,35 +48,34 @@
 
 - name: Enable IP forwarding
   shell: echo "1" > /proc/sys/net/ipv4/ip_forward
-  become: yes
 
-- name: Configure POSTROUTING
-  iptables:
-    table: nat
-    chain: POSTROUTING
-    out_interface: "{{ public_nic }}"
-    jump: MASQUERADE
-
-- name: Configure statefull FORWARD from outside
-  iptables:
-    chain: FORWARD
-    in_interface: "{{ public_nic }}"
-    out_interface: "{{ private_nic }}"
-    ctstate: ESTABLISHED,RELATED
-    jump: ACCEPT
-
-- name: Configure FORWARD
-  iptables:
-    chain: FORWARD
-    in_interface: "{{ private_nic }}"
-    jump: ACCEPT
+- name: Iptables rules
+  block: 
+  - iptables:
+      table: nat
+      chain: POSTROUTING
+      out_interface: "{{ public_nic }}"
+      jump: MASQUERADE
+  - iptables:
+      chain: FORWARD
+      in_interface: "{{ public_nic }}"
+      out_interface: "{{ private_nic }}"
+      ctstate: ESTABLISHED,RELATED
+      jump: ACCEPT
+  - iptables:
+      chain: FORWARD
+      in_interface: "{{ private_nic }}"
+      jump: ACCEPT
 
 - name: execute handlers
   meta: flush_handlers
 
-- name: Do dhclient on workers...
-  shell: sleep 15
+- name: Wait for workers to get IP
+  wait_for: 
+    host: "{{ hostvars[item].ansible_host }}"
+    port: 22
+  register: result
+  with_items: "{{ groups['workers'] }}"
 
-
-...
-
+# - name: Do dhclient on workers...
+#   shell: sleep 15

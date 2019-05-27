@@ -2,3 +2,8 @@ private_nic: enx0050b62623b8
 public_nic: eth0
 
 forwarded_dns: 141.64.3.55
+
+
+domain_name: pi.lan
+private_mask: 255.255.255.0
+host_number: 15

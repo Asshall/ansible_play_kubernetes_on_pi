@@ -1,8 +1,8 @@
-auto  {{ public_nic }}  {{ private_nic }} 
+auto {{ public_nic }} {{ private_nic }} 
 
-iface {{ public_nic }}  inet dhcp 
+iface {{ public_nic }} inet dhcp 
 
-iface {{ private_nic }}  inet static
+iface {{ private_nic }} inet static
         address {{ master_private }}
         netmask {{ private_mask }}
         pre-down iptables-save > /etc/iprules.v4

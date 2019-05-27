@@ -5,21 +5,22 @@
   gather_facts: no
   tasks:
   - add_host:
-      hostname: "{{ workers_suffix ~ '-' ~ item.num }}"
-      mac: "{{ item.mac }}"
+      hostname: "{{ workers_prefix ~ (index + 1) }}"
+      mac: "{{ item }}"
       groups: workers
     with_items: "{{ workers }}"
+    loop_control:
+      index_var: index
     when: add == "true" or add is defined
-
   roles: 
-  #- common-master 
-  #- kubernetes-master
+  - common-master 
+  - kubernetes-master
 
 - hosts: workers
   become: yes
   gather_facts: no 
   roles:
-    - common-workers  
-    - kubernetes-workers
+  - common-workers  
+  - kubernetes-workers
 
 ...

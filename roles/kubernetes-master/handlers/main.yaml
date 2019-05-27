@@ -1,7 +1,6 @@
 - name: Enables and start services
   service:
-    name: "{{ item }}"
+    name: "{{ item[:-3] | basename }}"
     enabled: yes
-    state: started 
-  with_items: "{{ services }}"
-  when: test != "true" or test is undefined
+    state: restarted 
+  with_fileglob: templates/*.service.j2

@@ -7,13 +7,14 @@ After=network.target
 [Service]
 Environment="ETCD_UNSUPPORTED_ARCH=arm64"
 Type=notify
-ExecStart=/usr/bin/etcd --name master \
-  --cert-file={{ remote_cert ~ "kubernetes.pem" }} \
-  --key-file={{ remote_cert ~ "kubernetes-key.pem" }} \
-  --peer-cert-file={{ remote_cert ~ "kubernetes.pem" }} \
-  --peer-key-file={{ remote_cert ~ "kubernetes-key.pem" }} \
-  --trusted-ca-file={{ remote_cert ~ "ca.pem" }} \
-  --peer-trusted-ca-file={{ remote_cert ~ "ca.pem" }} \
+ExecStart={{ binary_src }}etcd \
+  --name master \
+  --cert-file={{ cert }} \
+  --key-file={{ key }} \
+  --trusted-ca-file={{ ca }} \
+  --peer-cert-file={{ cert }} \
+  --peer-key-file={{ key }} \
+  --peer-trusted-ca-file={{ ca }} \
   --listen-client-urls {{ etcd_addr }} \
   --advertise-client-urls {{ etcd_addr }} \
   --initial-advertise-peer-urls {{ peers_urls }} \
@@ -21,7 +22,7 @@ ExecStart=/usr/bin/etcd --name master \
   --initial-cluster-token {{ "etcd-cluster-" ~ (range(1,100) | random) }} \
   --initial-cluster master={{ peers_urls }} \
   --initial-cluster-state new \
-  --data-dir=/var/lib/etcd 
+  --data-dir=/var/lib/etcd
 
 Restart=always
 RestartSec=5

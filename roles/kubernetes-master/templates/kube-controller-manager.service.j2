@@ -4,16 +4,15 @@ Documentation=https://github.com/kubernetes/kubernetes
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/kube-controller-manager --cluster-name={{ cluster_name }} \
+ExecStart={{ binary_src }}kube-controller-manager \
+  --cluster-name={{ cluster_name }} \
   --master={{ api_addr }} \
   --bind-address={{ master_private }} \ 
   --allocate-node-cidrs=true \
   --cluster-cidr={{ private_net ~ private_cidr}} \
   --service-cluster-ip-range={{ private_net ~ private_cidr }} \
   --leader-elect=true \
-  {# --service-account-private-key-file={{ remote_cert ~ "kubernetes-key.pem" }} \ #}
-  {# --cert-dir={{ remote_cert }} \ #}
-  --root-ca-file={{ remote_cert ~ "ca.pem" }} 
+  --client-ca-file={{ ca }}
 
 Restart=always
 RestartSec=5

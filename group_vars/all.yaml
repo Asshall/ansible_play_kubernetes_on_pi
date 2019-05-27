@@ -1,33 +1,14 @@
-ssh_keys: "{{ playbook_dir }}/ssh_keys"
-ansible_ssh_private_key_file: "{{ ssh_keys}}/key_id_rsa"
+ansible_ssh_private_key_file: "{{ playbook_dir ~ '/ssh_keys/key_id_rsa' }}"
 
-ansible_ssh_common_args: "-i {{ ansible_ssh_private_key_file }}"
+ansible_user: pi
+ansible_become_pass: linuxmasterrace 
 
 # Private conf
-domain_name: pi.lan
 private_net: 192.168.0.0
-private_mask: 255.255.255.0
-private_cidr: '/24'
 master_private: "{{ private_net[:-1] ~ 1 }}"
-host_number: 10
-
-
-# Public conf
-public_net: 141.64.0.0
-public_mask: 255.255.128.0 
-
-# Only present on public address since on private adresses are given by incrementing last octet
-master_public_suffix: '89.185'
-master_public: "{{ public_net.split('.')[0:(master_public_suffix.split('.') | length)] | join('.') ~ '.' ~ master_public_suffix }}"
 
 # Workers
-
-workers_suffix: pi
-workers_user: pi
+workers_prefix: pi.
 
 workers:
-- num: 1
-  mac: "b8:27:eb:6b:9b:bd"
-
-hardware_architechture: arm64
-
+- "b8:27:eb:6b:9b:bd"

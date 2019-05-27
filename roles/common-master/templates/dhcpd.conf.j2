@@ -1,13 +1,3 @@
-{#  Required vars #}
-{# domain_name  -> group_vars/pi.yaml #}
-{# private_net -> group_vars/pi.yaml #}
-{# private_mask -> group_vars/pi.yaml #}
-{# host_number -> group_vars/pi.yaml #}
-
-{# master_private -> pi.yaml #}
-{# hosts -> roles/common/task/main.yaml (template task) #}
-{# workers_prefix -> roles/common/defaults/main.yaml #}
-
 {% set subed_private_net = private_net[:-1] %}
 server-name "{{ 'dhcp.' ~ domain_name }}";
 
@@ -28,12 +18,10 @@ subnet {{ private_net }} netmask {{ private_mask }} {
 	option domain-name-servers {{ master_private }};
 	option routers {{ master_private }};
 
-  {% for host in hostvars %}
-    {% if hostvars[host].group_names == ['workers'] %}
+  {% for host in groups['workers'] %}
     host {{ host }}{
       hardware ethernet {{ hostvars[host].mac }};
       fixed-address {{ hostvars[host].ansible_host }};
     }
-    {% endif %}
   {% endfor %}
 }

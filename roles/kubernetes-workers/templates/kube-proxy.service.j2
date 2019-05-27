@@ -1,13 +1,12 @@
-sudo sh -c 'echo "[Unit]
+[Unit]
 Description=Kubernetes Kube Proxy
 Documentation=https://github.com/GoogleCloudPlatform/kubernetes
 
 [Service]
-ExecStart=/usr/bin/kube-proxy \
+ExecStart={{ binary_src }}kube-proxy \
   --master={{ api_addr }} \
-  --kubeconfig={{ remote_src }}kubeconfig \
-  --proxy-mode=iptables \
-  --v=2
+  --kubeconfig={{ config_path }} \
+  --proxy-mode=iptables
   
 Restart=on-failure
 RestartSec=5

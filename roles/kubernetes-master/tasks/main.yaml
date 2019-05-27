@@ -1,14 +1,12 @@
----
-
-- name: Include Kubernetes vars
-  include_vars :
-    file: kubernetes.yaml
-
-- include_tasks: kube_common_tasks.yaml
+- name: Include common vars and tasks
+  block: 
+  - include_vars :
+      file: kubernetes.yaml
+  - include_tasks: 'kube_tasks.yaml'
 
 - name: get api-server, scheduler, controller-manager
   get_url:
-    dest: /usr/bin
+    dest: "{{ binary_src }}"
     url: https://storage.googleapis.com/kubernetes-release/release/{{ kube_tag.stdout }}/bin/linux/{{ hardware_architechture }}/{{ item }}
     mode: 0755
   with_items: 
@@ -20,7 +18,7 @@
 - name: download and extract etcd files 
   unarchive: 
     remote_src: yes 
-    creates: /usr/bin/etcd
+    creates: "{{ binary_src ~ 'etcd' }}"
     src: https://github.com/coreos/etcd/releases/download/v3.3.13/etcd-v3.3.13-linux-{{ hardware_architechture }}.tar.gz
     dest: /
     exclude: 
@@ -29,28 +27,17 @@
   register: result
 
 - name: mv file from parent folder
-  shell: mv /etcd*/* /usr/bin
+  shell: mv /etcd*/* {{ binary_src }}
   when: result.skipped is undefined
-
-- name: Copy certificate to remote
-  copy: 
-    src: "{{ local_cert ~ '/' ~ item }}"
-    dest: "{{ remote_cert }}"
-  with_items:
-    - "ca.pem"
-    - "kubernetes-key.pem"
-    - "kubernetes.pem"
   
 - name: Copy auth file to remote 
   copy: 
-    src: "auth.json"
+    src: auth.json
     dest: "{{ remote_src }}"
-   
+  
 - name: Generate services
   template: 
-    src: "{{ item ~ '.j2' }}"
-    dest: /etc/systemd/system/{{ item }}
-  with_items: "{{ services }}"
+    src: "{{ item | basename }}"
+    dest: /etc/systemd/system/{{ item[:-3] | basename }}
+  with_fileglob: templates/*.service.j2
   notify: Enables and start services
-
-...

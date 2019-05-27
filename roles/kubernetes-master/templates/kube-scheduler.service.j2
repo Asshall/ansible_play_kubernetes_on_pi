@@ -4,10 +4,11 @@ Documentation=https://github.com/kubernetes/kubernetes
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/kube-scheduler \
+ExecStart={{ binary_src }}kube-scheduler \
+  --master={{ api_addr }} \
   --leader-elect=true \
-  --master={{ api_addr }}
-  --bind-address={{ master_private }} 
+  --bind-address={{ master_private }} \ 
+  --client-ca-file={{ ca }}
 Restart=always
 RestartSec=5
 

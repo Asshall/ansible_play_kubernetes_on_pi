@@ -1,3 +1,8 @@
-ansible_host: "{{ master_public }}"
-ansible_become_pass: rock 
-ansible_user: rock
+ansible_ssh_common_args: -o "ForwardAgent yes" 
+
+public_net: 141.64.0.0
+master_public_suffix: '89.185'
+
+ansible_host: "{{ public_net.split('.')[0:(master_public_suffix.split('.') | length)] | join('.') ~ '.' ~ master_public_suffix }}"
+
+hardware_architechture: arm64

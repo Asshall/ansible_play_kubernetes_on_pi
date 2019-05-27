@@ -1,5 +1,5 @@
-- name: Add master as gateway for default on workers
-  shell: test -z "$(ip route list | grep 'default via {{ master_private }}')" && route add default gw {{ master_private }} dev eth0 || exit 0
+# - name: Add master as gateway for default on workers
+#   shell: test -z "$(ip route list | grep 'default via {{ master_private }}')" && route add default gw {{ master_private }} dev eth0 || exit 0
 
 - import_tasks: common_tasks.yaml
 

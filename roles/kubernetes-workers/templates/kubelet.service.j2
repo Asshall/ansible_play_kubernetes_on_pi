@@ -5,19 +5,22 @@ After=docker.service
 Requires=docker.service
 
 [Service]
-ExecStart=/usr/bin/kubelet \
+ExecStart={{ binary_src }}kubelet \
   --allow-privileged=true \
-  --api-servers={{ api_addr }} \
   --cloud-provider= \
   --cluster-dns={{ master_private }} \
   --cluster-domain=cluster.local \
   --container-runtime=docker \
   --network-plugin=kubenet \
-  --kubeconfig={{ remote_src }}kubeconfig \
+  --kubeconfig={{ config_path }} \
   --serialize-image-pulls=false \
   --cert-dir={{ remote_cert }} \
-  --v=7
-  
+  --fail-swap-on=false \
+  --cgroups-per-qos=false \
+  --enforce-node-allocatable="" \
+  --pod-cidr={{ private_net ~ private_cidr}} \
+  --client-ca-file={{ ca }}
+
 Restart=on-failure
 RestartSec=5
 

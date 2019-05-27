@@ -4,7 +4,7 @@ Documentation=https://github.com/kubernetes/kubernetes
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/kube-apiserver \
+ExecStart={{ binary_src }}kube-apiserver \
   --apiserver-count=1 \
   --allow-privileged=true \
   {# --enable-admission-plugins=NamespaceLifecycle,LimitRanger,ServiceAccount,PersistentVolumeLabel,DefaultStorageClass,ResourceQuota,DefaultTolerationSeconds \ #}
@@ -12,14 +12,13 @@ ExecStart=/usr/bin/kube-apiserver \
   --service-cluster-ip-range={{ private_net ~ private_cidr }} \
   --service-node-port-range=30000-32767 \
   --etcd-servers={{ etcd_addr }} \
-  --etcd-cafile={{ remote_cert ~ "ca.pem" }} \
-  {# --etcd-certfile={{ remote_cert ~ "kubernetes.pem" }} \
-  --etcd-keyfile={{ remote_cert ~ "kubernetes-key.pem" }} \ #}
-  --tls-cert-file={{ remote_cert ~ "kubernetes.pem" }} \
-  --tls-private-key-file={{ remote_cert ~ "kubernetes-key.pem" }} \
-  --kubelet-certificate-authority={{ remote_cert ~ "ca.pem" }} \
+  --etcd-cafile={{ ca }} \
+  --tls-cert-file={{ cert }} \
+  --tls-private-key-file={{ key }} \
+  --kubelet-certificate-authority={{ ca }} \
   --authorization-mode=ABAC \
-  --authorization-policy-file={{ remote_src ~ "auth.json" }}
+  --authorization-policy-file={{ remote_src ~ "auth.json" }} \
+  --client-ca-file={{ ca }}
 Restart=always
 RestartSec=10s
 

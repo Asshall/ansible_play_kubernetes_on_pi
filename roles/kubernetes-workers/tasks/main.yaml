@@ -1,7 +1,9 @@
-- name: Include Kubernetes vars
-  include_vars :
-    file: kubernetes.yaml
-
+- name: Include common vars and tasks
+  block: 
+  - include_vars :
+      file: kubernetes.yaml
+  - include_tasks: 'kube_tasks.yaml'
+  
 - name: Install docker.io
   apt:
     force_apt_get: yes
@@ -10,22 +12,26 @@
     update_cache: yes
   when: test != "true" or test is undefined
 
-- include_tasks: kube_common_tasks.yaml
 
-- name: get kubelet and kubeproxy
+- name: Get kubelet, kubeproxy and kubectl 
   get_url:
-    dest: /usr/bin
+    dest: "{{ binary_src }}"
     url: https://storage.googleapis.com/kubernetes-release/release/{{ kube_tag.stdout }}/bin/linux/{{ hardware_architechture }}/{{ item[:-8] }}
     mode: 0755
     remote_src: yes
-  with_items: "{{ services }}"
+  with_items: 
+  - kubelet
+  - kube-proxy
+  - kubectl 
   when: test != "true" or test is undefined
 
-- name: Generate kubeconfig and services 
-  vars: 
-  template:
-    src: "{{ item ~ '.j2' }}"
-    dest: "{{ remote_src }}"
-  with_items: "{{ services + ['kubeconfig'] }}" 
-  notify: Enables and start services
-
+- name: Generate config and services
+  block: 
+  - template:
+      src: kubeconfig.j2
+      dest: "{{ config_path }}"
+  - template:
+      src: "{{ item }}"
+      dest: /etc/systemd/system/{{ item[:-3] | basename }}
+    with_fileglob: templates/*.service.j2
+    notify: Enables and start services

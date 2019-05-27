@@ -1,0 +1,24 @@
+- name: get last kubernetes tag
+  shell: curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt
+  args:
+    warn:  false
+  register: kube_tag
+  when: test != "true" or test is undefined
+
+- name: Copy certificate to remote
+  copy: 
+    src: "{{ item }}"
+    dest: "{{ remote_cert }}"
+  with_fileglob: "{{ local_cert }}/*.pem"
+
+- name: Copy root CA to OS cert list
+  blockinfile:
+    block: "{{ lookup('file', local_cert ~ 'ca.pem' ) }}"
+    dest: /etc/ssl/certs/ca-certificates.crt 
+
+
+- block:
+  - shell: echo "/$USER/.kube/config"
+    register: echo_result
+  - set_fact: config_path={{ echo_result.stdout }}
+  when: config_path is undefined or null

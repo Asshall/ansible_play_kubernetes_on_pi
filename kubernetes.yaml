@@ -3,7 +3,17 @@ local_cert: "{{ playbook_dir ~ '/pki/' }}"
 api_port: 6443
 api_addr: "{{ 'https://' ~ master_private ~ ':' ~ api_port }}"
 
+private_cidr: '/25'
+
 cluster_name: test
-remote_src: /etc/kubernetes/
+remote_src: /etc/kubernetes
 remote_cert: "{{ remote_src ~ 'pki/' }}"
 
+etcd_client_port: "2379"
+etcd_addr: "{{ 'https://' ~ master_private ~ ':' ~ etcd_client_port }}"
+
+ca: "{{ remote_cert ~ 'ca.pem' }}"
+cert: "{{ remote_cert ~ 'kubernetes.pem' }}"
+key: "{{ remote_cert ~ 'kubernetes-key.pem' }}"
+
+binary_src: /usr/bin/
