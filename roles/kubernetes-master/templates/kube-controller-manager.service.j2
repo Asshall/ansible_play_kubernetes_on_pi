@@ -9,8 +9,9 @@ ExecStart={{ binary_src }}kube-controller-manager \
   --master={{ api_addr }} \
   --bind-address={{ master_private }} \ 
   --allocate-node-cidrs=true \
-  --cluster-cidr={{ private_net ~ private_cidr}} \
-  --service-cluster-ip-range={{ private_net ~ private_cidr }} \
+  --cluster-cidr=10.200.0.0/16 \
+  --service-cluster-ip-range=10.32.0.0/24 \
+  --service-account-private-key-file={{ key }} \
   --leader-elect=true \
   --client-ca-file={{ ca }}
 

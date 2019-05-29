@@ -19,7 +19,7 @@ ExecStart={{ binary_src }}etcd \
   --advertise-client-urls {{ etcd_addr }} \
   --initial-advertise-peer-urls {{ peers_urls }} \
   --listen-peer-urls {{ peers_urls }} \
-  --initial-cluster-token {{ "etcd-cluster-" ~ (range(1,100) | random) }} \
+  --initial-cluster-token {{ "etcd-cluster-1" }} \
   --initial-cluster master={{ peers_urls }} \
   --initial-cluster-state new \
   --data-dir=/var/lib/etcd

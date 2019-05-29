@@ -13,7 +13,7 @@
   - kube-apiserver
   - kube-controller-manager
   - kube-scheduler
-  when: test != "true" or test is undefined
+  when: test is undefined
 
 - name: download and extract etcd files 
   unarchive: 
@@ -21,9 +21,7 @@
     creates: "{{ binary_src ~ 'etcd' }}"
     src: https://github.com/coreos/etcd/releases/download/v3.3.13/etcd-v3.3.13-linux-{{ hardware_architechture }}.tar.gz
     dest: /
-    exclude: 
-      - Documentation
-      - README*
+    exclude: [Documentation, README*]
   register: result
 
 - name: mv file from parent folder

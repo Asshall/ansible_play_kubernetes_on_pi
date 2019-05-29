@@ -1,14 +1,13 @@
 ansible_ssh_private_key_file: "{{ playbook_dir ~ '/ssh_keys/key_id_rsa' }}"
-
 ansible_user: pi
 ansible_become_pass: linuxmasterrace 
 
-# Private conf
 private_net: 192.168.0.0
 master_private: "{{ private_net[:-1] ~ 1 }}"
 
-# Workers
 workers_prefix: pi.
-
 workers:
 - "b8:27:eb:6b:9b:bd"
+
+# In GB
+bigest_img_size: 3

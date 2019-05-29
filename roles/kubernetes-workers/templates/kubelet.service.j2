@@ -14,11 +14,9 @@ ExecStart={{ binary_src }}kubelet \
   --network-plugin=kubenet \
   --kubeconfig={{ config_path }} \
   --serialize-image-pulls=false \
-  --cert-dir={{ remote_cert }} \
   --fail-swap-on=false \
   --cgroups-per-qos=false \
   --enforce-node-allocatable="" \
-  --pod-cidr={{ private_net ~ private_cidr}} \
   --client-ca-file={{ ca }}
 
 Restart=on-failure

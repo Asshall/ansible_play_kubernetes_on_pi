@@ -21,7 +21,7 @@
     force_apt_get: yes
     name: [ isc-dhcp-server, bind9, kmod, ifupdown2, curl ]
     state: present
-  when: test != "true" or test is undefined
+  when: test is undefined
 
 - name: Configure bind as a forwarding dns
   lineinfile: 
@@ -47,7 +47,7 @@
   with_items: "iptable_nat, iptables_filter, nf_conntrack_ipv4"
 
 - name: Enable IP forwarding
-  shell: echo "1" > /proc/sys/net/ipv4/ip_forward
+  command: echo '1' > /proc/sys/net/ipv4/ip_forwards
 
 - name: Iptables rules
   block: 
@@ -77,5 +77,3 @@
   register: result
   with_items: "{{ groups['workers'] }}"
 
-# - name: Do dhclient on workers...
-#   shell: sleep 15

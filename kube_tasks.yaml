@@ -3,7 +3,7 @@
   args:
     warn:  false
   register: kube_tag
-  when: test != "true" or test is undefined
+  when: test is undefined
 
 - name: Copy certificate to remote
   copy: 
@@ -15,10 +15,3 @@
   blockinfile:
     block: "{{ lookup('file', local_cert ~ 'ca.pem' ) }}"
     dest: /etc/ssl/certs/ca-certificates.crt 
-
-
-- block:
-  - shell: echo "/$USER/.kube/config"
-    register: echo_result
-  - set_fact: config_path={{ echo_result.stdout }}
-  when: config_path is undefined or null

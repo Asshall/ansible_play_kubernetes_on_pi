@@ -11,10 +11,12 @@
     with_items: "{{ workers }}"
     loop_control:
       index_var: index
-    when: add == "true" or add is defined
+    when: add is defined
   roles: 
   - common-master 
   - kubernetes-master
+  environment:
+        ANSIBLE_HOST_KEY_CHECKING: False
 
 - hosts: workers
   become: yes
