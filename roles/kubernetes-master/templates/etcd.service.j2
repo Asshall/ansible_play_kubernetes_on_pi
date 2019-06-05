@@ -8,18 +8,18 @@ After=network.target
 Environment="ETCD_UNSUPPORTED_ARCH=arm64"
 Type=notify
 ExecStart={{ binary_src }}etcd \
-  --name master \
+  --name=master \
   --cert-file={{ cert }} \
   --key-file={{ key }} \
   --trusted-ca-file={{ ca }} \
   --peer-cert-file={{ cert }} \
   --peer-key-file={{ key }} \
   --peer-trusted-ca-file={{ ca }} \
-  --listen-client-urls {{ etcd_addr }} \
-  --advertise-client-urls {{ etcd_addr }} \
-  --initial-advertise-peer-urls {{ peers_urls }} \
-  --listen-peer-urls {{ peers_urls }} \
-  --initial-cluster-token {{ "etcd-cluster-1" }} \
+  --listen-client-urls={{ etcd_addr }} \
+  --advertise-client-urls={{ etcd_addr }} \
+  --initial-advertise-peer-urls={{ peers_urls }} \
+  --listen-peer-urls={{ peers_urls }} \
+  --initial-cluster-token="etcd-cluster-1" \
   --initial-cluster master={{ peers_urls }} \
   --initial-cluster-state new \
   --data-dir=/var/lib/etcd

@@ -47,7 +47,7 @@
   with_items: "iptable_nat, iptables_filter, nf_conntrack_ipv4"
 
 - name: Enable IP forwarding
-  command: echo '1' > /proc/sys/net/ipv4/ip_forwards
+  shell: echo '1' > /proc/sys/net/ipv4/ip_forward
 
 - name: Iptables rules
   block: 

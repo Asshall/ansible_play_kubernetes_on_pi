@@ -17,7 +17,7 @@
   - set_fact: disk_size={{ disk_info.disk.size  ~ 'GB' }}
   - command: parted /dev/{{ device_name }} --script -- resizepart {{ partition_name[-1:] ~ ' ' ~ disk_size }} 
   - command: resize2fs /dev/{{ partition_name }}
-  when: (partition_size[:-1] | int) < {{ bigest_img_size }} 
+  when: (partition_size[:-1] | int) < bigest_img_size
 
 - name: Update and upgrade packages
   apt:

@@ -17,7 +17,8 @@ ExecStart={{ binary_src }}kube-apiserver \
   --kubelet-certificate-authority={{ ca }} \
   --authorization-mode=ABAC \
   --authorization-policy-file={{ remote_src ~ "auth.json" }} \
-  --client-ca-file={{ ca }} 
+  --client-ca-file={{ ca }} \ 
+  --external-hostname=master
 Restart=always
 RestartSec=10s
 

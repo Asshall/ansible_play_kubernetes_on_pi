@@ -7,21 +7,22 @@ ddns-update-style none;
 option ntp-servers 91.189.89.199;
 
 subnet {{ private_net }} netmask {{ private_mask }} {
+
 	authoritative;
 	
 	default-lease-time 600;
 	max-lease-time 7200;
 	
-	range {{ subed_private_net ~ 2 }} {{ subed_private_net ~ (host_number + 2) }};
+	range {{ subed_private_net ~ 2 }} {{ subed_private_net ~ host_number }};
 	
 	option domain-name "{{ domain_name }}";
 	option domain-name-servers {{ master_private }};
 	option routers {{ master_private }};
 
-  {% for host in groups['workers'] %}
-    host {{ host }}{
-      hardware ethernet {{ hostvars[host].mac }};
-      fixed-address {{ hostvars[host].ansible_host }};
-    }
-  {% endfor %}
+{% for host in groups['workers'] %}
+	host {{ host }} {
+		hardware ethernet {{ hostvars[host].mac }};
+		fixed-address {{ hostvars[host].ansible_host }};
+	}
+{% endfor %}
 }

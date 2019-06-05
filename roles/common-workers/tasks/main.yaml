@@ -3,4 +3,9 @@
 
 - import_tasks: common_tasks.yaml
 
+- name: Activate Cgroups memory
+  shell: "a='cgroup_memory=enabled'; b='/boot/cmdline.txt'; [ -z $(grep $a $b) ] && echo $a >> $b || echo ''"
+  notify: reboot
 
+- name: execute handlers
+  meta: flush_handlers

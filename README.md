@@ -1,21 +1,27 @@
+<div>
+	<img  src="https://cdn-images-1.medium.com/max/1600/1*_vzcsGSA5YwmNQOCrulfqg.png" align="top" width="110">
+	<img  src="https://github.com/kubernetes/kubernetes/raw/master/logo/logo.png" width="100">
+</div>
+----
+
 # Ansible script usage
 
 > 4 roles exist `common-master/workers` and `kubernetes-master/workers`, they are all executed from the top playbook `/top_play.yaml` 
 
 ## Basic usage
 ```bash
-cd $root_directory && ansible-playbook top_play.yaml
+cd $project_root_directory && ansible-playbook top_play.yaml
 ```
 The scipt is intended for ARM architecture ( Master *RockPi4* and workers *Raspberry3* ) and using the premade base images. When respecting these condition the only variable required to change is `/group_vars/all.yaml` -> **workers** ( mac address of worker Pis ). You can also tweak the range of the dhcp server in `/roles/common-master/defaults/main.yaml` -> **host_number** ( default being 15 which gives you 14 workers ). If you want to add more you need to make new certificates. 
 
 ## General informations 
 * Base images are not included in the repository
-* There is no configuration to be done on your local machine, everything is done by either variables inside the script or ansible config file (also in the repo), no need for known hosts because ansible is configured not to ask for them. 
+* There is no configuration to be done on your local machine, everything is done by either variables inside the script or ansible config file (also in the repo), no need for ssh known hosts because ansible is configured not to ask for them ( not secured ). 
 * To be able to use both inventory file and ansible configuration you **need to be located in the root of the project**
 * To access workers on the subnet a SSH proxy is used and public key is forwarded through the master node, SSH keys are in `/ssh_keys`
 * This inventory is dynamic and hosts are added by the first tasks in the role `common_master`. If for some reason you don't run this role and still want to do worker related tasks, you can add them by providing the varible `add` with this command `ansible-playbook top_play.yaml --extra-vars="add=true"` (value is not important)
 * Downloading of the binaries and package manager updates can be skipped by providing the varible `test` with this command `ansible-playbook top_play.yaml --extra-vars="test=true"` (value is not important), you can provide multiple variables by comma space separating them *e.g : `--extra-vars="test=true, add=true"`*
-* Workers get their IP and hostnames from their index in the variables workers, *e.g : the first one will be 192.168.0.2 and his name will be pi.1*. You can change the prefix in `/group_vars/all.yaml` -> **workers_prefix** ( Ansible doesn't want dash in the names )
+* Workers get their IP and hostnames from their index in the variables workers, *e.g : the first one will be 192.168.0.2 and his name will be pi.1*. You can change the prefix in `/group_vars/all.yaml` -> **workers_prefix** ( Ansible doesn't want dashes in the names )
 
 ## Usefull variables 
 
@@ -31,7 +37,8 @@ Certificates are configured to last a year and to accept addresses from `192.168
 
 * Install `CFSSL` and `CFSSLJSON` on you local machine
 ```bash
-# This scripts make binaries executable and move them to /usr/bin ( also rename bins so you don't have distro and architecture in the name )
+# This scripts make binaries executable, move them to /usr/bin and rename bins so you don't have distro and architecture in the name
+# Run with bash
 for bin in {'https://pkg.cfssl.org/R1.2/cfssl_linux-arm','https://pkg.cfssl.org/R1.2/cfssljson_linux-arm'}; do 
     wget $bin && chmod u+x ${_##*/} && mv $_ /usr/bin/${_%_*}
 done 
@@ -63,7 +70,8 @@ openssl x509 -in kubernetes.pem -text -noout
 ## Base Images
 
 In order to have fewer variables in the script, username and password are the same on both images. They need to correspond to `/groups_vars/all.yaml` -> **ansible_user, ansible_become_pass**
-In the worker images a cron job is enabled, it checks every minutes if one of it's IPs is in the range `192.168~`, if not it deletes existing addresses and run dhclient. That means no user input is required. The name of the scipt in `/usr/bin/getIP`
+
+In the worker images a cron job is enabled, it checks every minutes if one of it's IPs is in the range `192.168~`, if not it deletes existing addresses and run `dhclient`. That means no user input is required. The the script is in `/usr/bin/getIP`
 
 ### Distro links 
 
@@ -76,10 +84,10 @@ In the worker images a cron job is enabled, it checks every minutes if one of it
 
 #### Both password and username are changed :
 ```bash
-# login as root so no process are owned by rock
+# You need to login as root so no process are owned by rock
 # First configure root password
 sudo passwd 
-# then login as root 
+# Then CTRL+d and login as root 
 
 # Change username and home directory
 usermod -l pi rock
@@ -98,10 +106,10 @@ sudo apt install openssh-server
 ```bash 
 sudo systemctl enable ssh
 ```
-#### You need to use put your private key in authorized_key 
+#### You need to put your public key in authorized_key 
 ```bash
 ssh-copy-id -i $publickeyfile $hostname 
-# For workers you need to directly connect with a cable or run master-common role of ansible scripts and then do it from master
+# For workers you need to directly connect with a cable or run master-common role of ansible scripts and then use master as a proxy
 ```
 
 #### Cron job on worker 
