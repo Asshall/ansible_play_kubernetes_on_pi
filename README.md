@@ -2,7 +2,7 @@
 	<img  src="https://cdn-images-1.medium.com/max/1600/1*_vzcsGSA5YwmNQOCrulfqg.png" align="top" width="110">
 	<img  src="https://github.com/kubernetes/kubernetes/raw/master/logo/logo.png" width="100">
 </div>
-----
+---
 
 # Ansible script usage
 
