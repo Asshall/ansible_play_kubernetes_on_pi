@@ -1,3 +1,14 @@
+- name: Wait for current host to be available
+  block: 
+  - wait_for: 
+      host: "{{ hostvars[inventory_hostname].ansible_host }}"
+      port: 22
+    ignore_errors: yes
+  rescue:  
+  - fail: 
+      msg: An host present in group_vars -> workers can't be reached. Try deleteting this line "{{ hostvars[inventory_hostname].mac }}"
+    when: inventory_hostname in hostvars[inventory_hostname].groups['workers']
+
 - name: Get root partition name
   block: 
   - command: lsblk -lJ
@@ -24,3 +35,4 @@
     name: "*"
     state: latest
   when: test is undefined
+

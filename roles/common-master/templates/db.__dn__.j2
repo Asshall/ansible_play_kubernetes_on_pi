@@ -1,0 +1,17 @@
+$TTL 86400
+
+; SOA Record
+@	 		IN	SOA	dns.{{ domain_name }}.	master.{{ domain_name }}.	(
+            1	 ;serial
+            3600	 ;refresh
+            600	    ;retry
+            604800	 ;expire
+            86400	 ;minimum ttl
+)
+
+@   IN	NS	dns.pi.lan.
+dns IN  A   {{ master_private }}
+master	IN  A   {{ master_private }}
+{% for host in groups['workers'] %}
+{{ host }}  IN  A   {{ hostvars[host].ansible_host }}
+{% endfor%}

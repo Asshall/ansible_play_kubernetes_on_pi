@@ -1,15 +1,20 @@
 - name: Add workers to inventory
-  add_host:
-    hostname: "{{ workers_prefix ~ (index + 1) }}"
-    mac: "{{ item }}"
-    groups: workers
-  with_items: "{{ workers }}"
-  loop_control:
-    index_var: index
-
+  block: 
+  - fail: 
+      msg: No workers have been found in groups_vars -> workers, at least one is needed
+    when: workers is none
+  - add_host:
+      hostname: "{{ workers_prefix ~ (index + 1) }}"
+      mac: "{{ item }}"
+      groups: workers
+    with_items: "{{ workers }}"
+    loop_control:
+      index_var: index
+ 
+ 
 - include_tasks: common_tasks.yaml
 
-- name: Configure network manager to leave us alone 
+- name: Configure network manager to leave us in peace 
   lineinfile: 
     dest: /etc/NetworkManager/NetworkManager.conf
     regexp: "^(unmanaged-devices).+?ethernet"
@@ -19,10 +24,9 @@
 - name: Install needed packages
   apt:
     force_apt_get: yes
-    name: [ isc-dhcp-server, bind9, kmod, ifupdown2, curl ]
+    name: [ isc-dhcp-server, bind9, kmod, ifupdown2, curl, flannel ]
     state: present
   when: test is undefined
-
 - name: Configure bind as a forwarding dns
   lineinfile: 
     dest: /etc/bind/named.conf.options
@@ -30,15 +34,38 @@
     line: forwarders { {{ forwarded_dns }}; };
   notify: dns 
 
-- name: Generate template 
+- name: Generate templates 
   template:
     src: "{{ item.src }}"
-    dest: "{{ item.dest }}"
-  notify: "{{ item.not | default('')}}" 
+    dest: "{{ item.dest ~ item.src[:-3] | replace('__dn__', domain_name) | replace('__ip__', reverse_filename) }}"
+  notify: "{{ item.not }}" 
   with_items: 
-  - { src: interfaces.j2, dest: /etc/network/interfaces, not: network }
-  - { src: isc-dhcp-server.j2 , dest: /etc/default/isc-dhcp-server, not: dhcp  }
-  - { src: dhcpd.conf.j2 , dest: /etc/dhcp/dhcpd.conf, not: dhcp }
+  - { src: interfaces.j2, dest: /etc/network/, not: network }
+  - { src: isc-dhcp-server.j2 , dest: /etc/default/, not: dhcp }
+  - { src: dhcpd.conf.j2 , dest: /etc/dhcp/, not: dhcp }
+  - { src: db.__dn__.j2 , dest: /etc/bind/, not: dns }
+  - { src: db.__ip__.j2 , dest: /etc/bind/, not: dns }
+
+- name: Add zonefile to named.conf (bind9) 
+  block:
+  - set_fact: dest=/etc/bind/named.conf.default-zones
+  - command:  /bin/grep {{ domain_name ~ ' ' ~ dest }} 
+    ignore_errors: yes
+    register: result
+  - blockinfile:
+      dest: "{{ dest }}"
+      block: "{{ lookup('template', role_path  ~ '/templates/default-zones.j2') }}" 
+      marker: ''
+    notify: dns
+    when: result.rc == 1
+  
+- name: Configure master to use our DNS server
+  lineinfile: 
+    dest: /etc/resolv.conf
+    regexp: "^(nameserver) [0-9.]{7,15}$"
+    line: '\1 {{ master_private }}'
+    backrefs: yes
+
 
 - name: Add iptables modules
   modprobe:
@@ -66,14 +93,4 @@
       chain: FORWARD
       in_interface: "{{ private_nic }}"
       jump: ACCEPT
-
-- name: execute handlers
-  meta: flush_handlers
-
-- name: Wait for workers to get IP
-  wait_for: 
-    host: "{{ hostvars[item].ansible_host }}"
-    port: 22
-  register: result
-  with_items: "{{ groups['workers'] }}"
 

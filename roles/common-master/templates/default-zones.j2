@@ -1,0 +1,9 @@
+zone "{{ domain_name }}" {
+	type master; 
+	file "/etc/bind/db.{{ domain_name }}";
+};
+
+zone "{{ reverse_filename }}.in-addr.arpa" {
+    type master;
+    file "/etc/bind/db.{{ reverse_filename }}";
+};

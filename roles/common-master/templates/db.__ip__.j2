@@ -1,0 +1,16 @@
+$TTL 86400
+
+; SOA Record
+@	 		IN	SOA	dns.{{ domain_name }}.	master.{{ domain_name }}.	(
+            1	     ;serial
+            3600	 ;refresh
+            600	     ;retry
+            604800	 ;expire
+            86400	 ;minimum ttl
+)
+
+@	IN	NS	dns.
+@	IN	PTR	 master.
+{% for host in groups['workers'] %}
+@   IN  PTR  {{ host }}.
+{% endfor%}

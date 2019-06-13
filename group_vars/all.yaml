@@ -5,9 +5,10 @@ ansible_become_pass: linuxmasterrace
 private_net: 192.168.0.0
 master_private: "{{ private_net[:-1] ~ 1 }}"
 
-workers_prefix: pi.
+workers_prefix: worker.
 workers:
 - "b8:27:eb:6b:9b:bd"
+- "b8:27:eb:ea:7d:11"
 
 # In GB
 bigest_img_size: 3

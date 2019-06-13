@@ -5,7 +5,8 @@ After=network.target
 
 {% set peers_urls = etcd_addr[:-(etcd_client_port | length)] ~ etcd_peer_port %}
 [Service]
-Environment="ETCD_UNSUPPORTED_ARCH=arm64"
+Environment="ETCD_UNSUPPORTED_ARCH={{ hardware_architechture }}"
+Environment="ETCDCTL_ENDPOINTS={{ etcd_addr }}"
 Type=notify
 ExecStart={{ binary_src }}etcd \
   --name=master \

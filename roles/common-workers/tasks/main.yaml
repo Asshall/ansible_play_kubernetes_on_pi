@@ -1,11 +1,12 @@
-# - name: Add master as gateway for default on workers
-#   shell: test -z "$(ip route list | grep 'default via {{ master_private }}')" && route add default gw {{ master_private }} dev eth0 || exit 0
-
 - import_tasks: common_tasks.yaml
 
-- name: Activate Cgroups memory
-  shell: "a='cgroup_memory=enabled'; b='/boot/cmdline.txt'; [ -z $(grep $a $b) ] && echo $a >> $b || echo ''"
+- name: Activate Cgroup memory
+  replace: 
+    path: /boot/cmdline.txt
+    regexp: '(rootwait)$'
+    replace: '\1 cgroup_memory=enabled'
   notify: reboot
+  
 
 - name: execute handlers
   meta: flush_handlers

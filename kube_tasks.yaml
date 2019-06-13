@@ -3,7 +3,7 @@
   args:
     warn:  false
   register: kube_tag
-  when: test is undefined
+  when: test is undefined and kube_tag is undefined
 
 - name: Copy certificate to remote
   copy: 

@@ -13,6 +13,7 @@ ExecStart={{ binary_src }}kube-controller-manager \
   --service-cluster-ip-range=10.32.0.0/24 \
   --service-account-private-key-file={{ key }} \
   --leader-elect=true \
+  --cluster-signing-key-file={{ ca }} \
   --client-ca-file={{ ca }}
 
 Restart=always

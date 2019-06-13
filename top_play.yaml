@@ -2,7 +2,7 @@
 
 - hosts: master
   become: yes
-  gather_facts: no+
+  gather_facts: no
   tasks:
   - add_host:
       hostname: "{{ workers_prefix ~ (index + 1) }}"
