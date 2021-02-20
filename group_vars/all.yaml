@@ -8,7 +8,7 @@ master_private: "{{ private_net[:-1] ~ 1 }}"
 workers_prefix: worker.
 workers:
 - "b8:27:eb:6b:9b:bd"
-- "b8:27:eb:ea:7d:11"
+#- "b8:27:eb:ea:7d:11"
 
 # In GB
 bigest_img_size: 3

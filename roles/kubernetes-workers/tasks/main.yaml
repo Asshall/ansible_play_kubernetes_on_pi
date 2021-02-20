@@ -24,6 +24,12 @@
   with_items: ["kubelet", "kube-proxy", "kubectl"] 
   when: test is undefined
 
+- name: Enable CNI
+  block:
+  - unarchive:
+    src: "{{ role_path ~ '/cni.tar.gz' }}"
+    dest: /opt/cni/ 
+  - shell:  kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/62e44c867a2846fefb68bd5f178daf4da3095ccb/Documentation/kube-flannel.yml
 # - name: download and extract kubelet files 
 #   block:
 #   - file: 
